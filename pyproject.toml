@@ -1,0 +1,30 @@
+[build-system]
+requires = [
+    "setuptools>=42",
+    "wheel"
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lockpy"
+version = "0.0.1"
+description = "A library for distributed system locks"
+authors = [
+    { name = "Don Freeman", email = "dbfreem2@yahoo.com" }
+]
+license = { text = "MIT" }
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "aioboto3~=13.4.0"
+]
+
+
+[project.optional-dependencies]
+dev = [
+    "pytest~=8.3.4",
+    "pytest-asyncio~=0.25.2",
+    "pytest-mock~=3.14.0",
+    "types-aioboto3~=13.4.0",
+    "ruff~=0.9.3"
+]
