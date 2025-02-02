@@ -1,8 +1,5 @@
-class DuplicateLockError(Exception):
-    pass
 
-
-class BaseLock:
+class BaseBackend:
     def __init__(self):
         pass
 

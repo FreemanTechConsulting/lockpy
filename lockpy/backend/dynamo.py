@@ -4,14 +4,21 @@ import uuid
 import logging
 from botocore.exceptions import ClientError
 
-from lockpy.lock.baselock import BaseLock, DuplicateLockError
+from lockpy.backend.base_backend import BaseBackend
+from lockpy.models.exceptions import DuplicateLockError
+from lockpy.models.lock import AcquiredLock
 
 logger = logging.getLogger(__name__)
 
 
-class DynamoDBlockTable(BaseLock):
-    def __init__(self, table_name):
+class DynamoDBlockTable(BaseBackend):
+    def __init__(
+        self,
+        table_name,
+        partition_key
+    ):
         self.table_name = table_name
+        self.partition_key = partition_key
         self._session = aioboto3.Session()
 
     @property
@@ -24,7 +31,7 @@ class DynamoDBlockTable(BaseLock):
 
     async def acquire(self, lock_key, ttl_seconds):
         """
-        Acquires a lock on the specified key.
+        Acquires a lock on the specified resource key.
 
         :param lock_key: The unique key for the lock.
         :param ttl_seconds: Time-to-live in seconds for the lock.
@@ -40,14 +47,14 @@ class DynamoDBlockTable(BaseLock):
             try:
                 await table.put_item(
                     Item={
-                        "lock_key": lock_key,
+                        self.partition_key: lock_key,
                         "lock_id": lock_id,
                         "expires_at": expiration_time,
                     },
-                    ConditionExpression="attribute_not_exists(lock_key) OR expires_at < :now",
+                    ConditionExpression=f"attribute_not_exists({self.partition_key}) OR expires_at < :now",
                     ExpressionAttributeValues={":now": datetime.now(UTC).isoformat()},
                 )
-                return lock_id
+                return AcquiredLock(lock_key, lock_id, expiration_time)
             except ClientError as client_error:
                 if (
                     client_error.response["Error"]["Code"]
@@ -76,7 +83,7 @@ class DynamoDBlockTable(BaseLock):
 
             try:
                 await table.delete_item(
-                    Key={"lock_key": lock_key},
+                    Key={self.partition_key: lock_key},
                     ConditionExpression="lock_id = :lock_id",
                     ExpressionAttributeValues={":lock_id": lock_id},
                 )
@@ -95,7 +102,7 @@ class DynamoDBlockTable(BaseLock):
         async with self.session.resource("dynamodb") as dynamodb:
             table = await dynamodb.Table(self.table_name)
 
-            response = await table.get_item(Key={"lock_key": lock_key})
+            response = await table.get_item(Key={self.partition_key: lock_key})
             item = response.get("Item")
             if not item:
                 return False
@@ -104,7 +111,7 @@ class DynamoDBlockTable(BaseLock):
             expires_at = datetime.fromisoformat(item["expires_at"])
             if datetime.now(UTC) > expires_at:
                 # lock is expired
-                await table.delete_item(Key={"lock_key": lock_key})
+                await table.delete_item(Key={self.partition_key: lock_key})
                 return False
 
             return True
@@ -127,7 +134,7 @@ class DynamoDBlockTable(BaseLock):
 
             try:
                 await table.update_item(
-                    Key={"lock_key": lock_key},
+                    Key={self.partition_key: lock_key},
                     UpdateExpression="SET expires_at = :new_expiration",
                     ConditionExpression="lock_id = :lock_id",
                     ExpressionAttributeValues={
@@ -135,8 +142,8 @@ class DynamoDBlockTable(BaseLock):
                         ":lock_id": lock_id,
                     },
                 )
-                return True
+                return AcquiredLock(lock_key, lock_id, new_expiration_time)
             except Exception as e:
                 logger.error(f"Failed to refresh lock for {lock_key}")
                 logger.debug(e)
-                return False
+                raise e

@@ -171,3 +171,4 @@ cython_debug/
 .pypirc
 .python-version
 .vscode/settings.json
+.vscode/launch.json

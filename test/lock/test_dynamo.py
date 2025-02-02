@@ -2,8 +2,10 @@ from datetime import datetime, UTC, timedelta
 from unittest.mock import AsyncMock, Mock
 from botocore.exceptions import ClientError
 import pytest
-from lockpy.lock.baselock import DuplicateLockError
-from lockpy.lock.dynamo import DynamoDBlockTable
+
+from lockpy.backend import DynamoDBlockTable
+from lockpy.models.exceptions import DuplicateLockError
+
 
 class MockSession:
 

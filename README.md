@@ -1,17 +1,23 @@
-Sure, here's an example of a README.md file for the `lockpy` library:
-
 # lockpy
+
 
 `lockpy` is a Python library for acquiring and releasing distributed locks. It provides a simple interface for acquiring and releasing locks.
 
+It solves the problem in distributed systems where you may have two different instances running and you want to ensure that only one instance acquires the lock at a time. lockpy is meant to be simple and easy to use.
+
 Right now it only supports dynamodb but other backends are planned.
+
+Here are some features of `lockpy`:
+ - implemented using asyncio
+ - allows for auto-renewal of locks
+ - can be used as an asyncio context manager
 
 ## Installation
 
 You can install `lockpy` using pip:
 
 ```
-git clone .....
+git clone https://github.com/dbfreem/lockpy.git
 cd lockpy
 pip install .
 ```
