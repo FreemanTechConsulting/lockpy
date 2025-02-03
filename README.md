@@ -12,7 +12,12 @@ Here are some features of `lockpy`:
  - allows for auto-renewal of locks
  - can be used as an asyncio context manager
 
+## Python Versions supported
+Currently only tested again Python 3.12 more versions to come soon. 
+
 ## Installation
+
+Not yet posted to pypi but coming soon!
 
 You can install `lockpy` using pip:
 
@@ -24,35 +29,40 @@ pip install .
 
 ## Usage
 
-Here's an example of how to use `lockpy`:
+### Context Manager
+Below is an example of using `Lock` as a context manager
 
 ```python
 from lockpy import Lock
 
-lock = Lock("my_lock_key")
-
-if await lock.acquire():
-    try:
-        # Do some work here
-        pass
-    finally:
-        await lock.release()
+async with Lock(
+    lock_key,
+    ttl_seconds,
+    DynamoDBlockTable(table_name="test_lock", partition_key="lock_key")
+) as lock:
+    # Do some work here
+    pass
 ```
 
+### Using LockClient
+
+LockClient can be used if a context manager is not desired. Also using LockClient will allow for generating multiple locks at different lock keys
+
+```python
+from lockpy import LockClient
+
+lock_client = LockClient(DynamoDBlockTable(table_name="test_lock", partition_key="lock_key"))
+lock = await lock_client.acquire(lock_key, ttl_seconds)
+print(await lock_client.is_locked(lock_key))
+await lock_client.refresh(lock_key, lock.lock_id, ttl_seconds)
+if await lock_client.is_locked(lock_key):
+    await lock_client.release(lock_key, lock.lock_id)
+```
+In this example we use the LockClient to acquire a lock on 
 In this example, we create a `Lock` object with a key of "my_lock_key". We then call the `acquire()` method to acquire the lock. If the lock is acquired successfully, we do some work and then call the `release()` method to release the lock.
 
 `lockpy` supports multiple locking backends, including Redis and DynamoDB. You can specify the backend to use when creating the `Lock` object. For example, to use Redis as the locking backend, you can do the following:
 
-```python
-from lockpy import Lock
-from lockpy.backends.redis import RedisBackend
-
-redis_client = redis.Redis()
-
-lock = Lock("my_lock_key", backend=RedisBackend(redis_client))
-```
-
-In this example, we create a `RedisBackend` object using a `redis.Redis` client, and pass it to the `Lock` constructor.
 
 ## Contributing
 
