@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 from uuid import UUID
 
 from lockpy.backend import BaseBackend
@@ -29,7 +30,7 @@ class Lock:
         self.lock_key: str = lock_key
         self.ttl_seconds: int = ttl_seconds
         self.backend: BaseBackend = backend
-        self.lock_id: UUID = None
+        self.lock_id: Optional[UUID] = None
 
     async def __aenter__(self):
         return await self.acquire()
@@ -139,5 +140,5 @@ class LockClient:
         :return: The refreshed lock, otherwise throws an exception.
         """
         lock: AcquiredLock = await self.backend.refresh(lock_key, lock_id, ttl_seconds)
-        logger.info(f"♻️ Refreshed lock for {self.lock_key}")
+        logger.info(f"♻️ Refreshed lock for {lock_key}")
         return lock
