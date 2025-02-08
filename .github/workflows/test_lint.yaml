@@ -18,7 +18,7 @@ jobs:
     - name: Run ruff check and format
       run: |
         ruff check lockpy
-        ruff format lockpy
+        ruff format --check lockpy
     - name: Run mypy
       run: |
         mypy lockpy
