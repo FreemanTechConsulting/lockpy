@@ -1,3 +1,2 @@
-
 class DuplicateLockError(Exception):
     pass

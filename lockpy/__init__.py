@@ -1,1 +1,1 @@
-from lockpy.lock_client import LockClient, Lock
+from lockpy.lock_client import LockClient as LockClient, Lock as Lock

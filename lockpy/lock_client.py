@@ -1,10 +1,11 @@
 import logging
 from uuid import UUID
 
-from lockpy.backend import  BaseBackend
+from lockpy.backend import BaseBackend
 from lockpy.models import AcquiredLock
 
 logger = logging.getLogger(__name__)
+
 
 class Lock:
     """
@@ -20,11 +21,11 @@ class Lock:
     """
 
     def __init__(
-            self,
-            lock_key: str,
-            ttl_seconds: int,
-            backend: BaseBackend,
-        ):
+        self,
+        lock_key: str,
+        ttl_seconds: int,
+        backend: BaseBackend,
+    ):
         self.lock_key: str = lock_key
         self.ttl_seconds: int = ttl_seconds
         self.backend: BaseBackend = backend
@@ -32,7 +33,7 @@ class Lock:
 
     async def __aenter__(self):
         return await self.acquire()
-    
+
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self.release()
 
@@ -80,7 +81,9 @@ class Lock:
         :param ttl_seconds: The new time-to-live in seconds for the lock.
         :return: The refreshed lock, otherwise throws an exception.
         """
-        lock: AcquiredLock = await self.backend.refresh(self.lock_key, self.lock_id, self.ttl_seconds)
+        lock: AcquiredLock = await self.backend.refresh(
+            self.lock_key, self.lock_id, self.ttl_seconds
+        )
         self.lock_id = lock.lock_id
         logger.info(f"♻️ Refreshed lock for {self.lock_key}")
         return lock
@@ -88,11 +91,11 @@ class Lock:
 
 class LockClient:
     def __init__(
-            self,
-            backend: BaseBackend,
-        ):
+        self,
+        backend: BaseBackend,
+    ):
         self.backend: BaseBackend = backend
-        
+
     async def acquire(self, lock_key: str, ttl_seconds: int) -> AcquiredLock:
         """
         Acquires a lock on the specified lock key.
@@ -117,7 +120,6 @@ class LockClient:
         logger.info(f"🔓 Released lock for {lock_key}")
         return release
 
-
     async def is_locked(self, lock_key: UUID) -> bool:
         """
         Checks if a lock is currently locked on the specified key.
@@ -136,7 +138,6 @@ class LockClient:
         :param ttl_seconds: The new time-to-live in seconds for the lock.
         :return: The refreshed lock, otherwise throws an exception.
         """
-        lock: AcquiredLock =  await self.backend.refresh(lock_key, lock_id, ttl_seconds)
+        lock: AcquiredLock = await self.backend.refresh(lock_key, lock_id, ttl_seconds)
         logger.info(f"♻️ Refreshed lock for {self.lock_key}")
         return lock
-

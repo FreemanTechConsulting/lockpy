@@ -12,11 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class DynamoDBlockTable(BaseBackend):
-    def __init__(
-        self,
-        table_name,
-        partition_key
-    ):
+    def __init__(self, table_name, partition_key):
         self.table_name = table_name
         self.partition_key = partition_key
         self._session = aioboto3.Session()

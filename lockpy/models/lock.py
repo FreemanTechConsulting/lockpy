@@ -1,4 +1,3 @@
-
 from dataclasses import dataclass
 
 
@@ -7,5 +6,3 @@ class AcquiredLock:
     lock_key: str
     lock_id: str
     expires_at: str
-
-
