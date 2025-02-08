@@ -1,8 +1,4 @@
-# WARNING
-
-**This library is not yet ready for production use and the API is subject to change!**
-
-I'm looking for feedback on the API and how it works. If you have any ideas or want to contribute, please let me know! I'm open to hearing about any issues or suggestions you have.
+The API is still being refined on lockpy and may change in the future. If you have any ideas or want to contribute, please create an issue or pull request.
 
 # lockpy
 
