@@ -1,8 +1,10 @@
+import logging
 from uuid import UUID
 
 from lockpy.backend import  BaseBackend
 from lockpy.models import AcquiredLock
 
+logger = logging.getLogger(__name__)
 
 class Lock:
     """
@@ -42,8 +44,9 @@ class Lock:
         :param ttl_seconds: Time-to-live in seconds for the lock.
         :return: AcquiredLock if the lock is acquired, thorws an exception otherwise.
         """
-        lock = await self.backend.acquire(self.lock_key, self.ttl_seconds)
+        lock: AcquiredLock = await self.backend.acquire(self.lock_key, self.ttl_seconds)
         self.lock_id = lock.lock_id
+        logger.info(f"🔒 Acquired lock for {self.lock_key}")
         return lock
 
     async def release(self) -> bool:
@@ -56,6 +59,7 @@ class Lock:
         """
         await self.backend.release(self.lock_key, self.lock_id)
         self.lock_id = None
+        logger.info(f"🔓 Released lock for {self.lock_key}")
         return True
 
     async def is_locked(self) -> bool:
@@ -76,8 +80,9 @@ class Lock:
         :param ttl_seconds: The new time-to-live in seconds for the lock.
         :return: The refreshed lock, otherwise throws an exception.
         """
-        lock = await self.backend.refresh(self.lock_key, self.lock_id, self.ttl_seconds)
+        lock: AcquiredLock = await self.backend.refresh(self.lock_key, self.lock_id, self.ttl_seconds)
         self.lock_id = lock.lock_id
+        logger.info(f"♻️ Refreshed lock for {self.lock_key}")
         return lock
 
 
@@ -96,7 +101,9 @@ class LockClient:
         :param ttl_seconds: Time-to-live in seconds for the lock.
         :return: AcquiredLock if the lock is acquired, thorws an exception otherwise.
         """
-        return await self.backend.acquire(lock_key, ttl_seconds)
+        lock: AcquiredLock = await self.backend.acquire(lock_key, ttl_seconds)
+        logger.info(f"🔒 Acquired lock for {lock_key}")
+        return lock
 
     async def release(self, lock_key: str, lock_id: UUID) -> bool:
         """
@@ -106,7 +113,10 @@ class LockClient:
         :param lock_id: The ID of the lock to ensure proper ownership.
         :return: True if the lock is relockd, throws an exception otherwise.
         """
-        return await self.backend.release(lock_key, lock_id)
+        release: bool = await self.backend.release(lock_key, lock_id)
+        logger.info(f"🔓 Released lock for {lock_key}")
+        return release
+
 
     async def is_locked(self, lock_key: UUID) -> bool:
         """
@@ -126,4 +136,7 @@ class LockClient:
         :param ttl_seconds: The new time-to-live in seconds for the lock.
         :return: The refreshed lock, otherwise throws an exception.
         """
-        return await self.backend.refresh(lock_key, lock_id, ttl_seconds)
+        lock: AcquiredLock =  await self.backend.refresh(lock_key, lock_id, ttl_seconds)
+        logger.info(f"♻️ Refreshed lock for {self.lock_key}")
+        return lock
+
