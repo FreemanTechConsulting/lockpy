@@ -10,7 +10,6 @@ Right now it only supports dynamodb but other backends are planned.
 
 Here are some features of `lockpy`:
  - implemented using asyncio
- - allows for auto-renewal of locks
  - can be used as an asyncio context manager
 
 ## Python Versions supported
