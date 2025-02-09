@@ -1,5 +1,5 @@
 import aioboto3
-from datetime import datetime, timedelta, UTC
+from datetime import datetime, timedelta, timezone
 import uuid
 import logging
 from botocore.exceptions import ClientError
@@ -38,7 +38,7 @@ class DynamoDBlockTable(BaseBackend):
 
             lock_id = str(uuid.uuid4())
             expiration_time = (
-                datetime.now(UTC) + timedelta(seconds=ttl_seconds)
+                datetime.now(timezone.utc) + timedelta(seconds=ttl_seconds)
             ).isoformat()
             try:
                 await table.put_item(
@@ -48,7 +48,7 @@ class DynamoDBlockTable(BaseBackend):
                         "expires_at": expiration_time,
                     },
                     ConditionExpression=f"attribute_not_exists({self.partition_key}) OR expires_at < :now",
-                    ExpressionAttributeValues={":now": datetime.now(UTC).isoformat()},
+                    ExpressionAttributeValues={":now": datetime.now(timezone.utc).isoformat()},
                 )
                 return AcquiredLock(lock_key, lock_id, expiration_time)
             except ClientError as client_error:
@@ -105,7 +105,7 @@ class DynamoDBlockTable(BaseBackend):
 
             # Check if the lock has expired
             expires_at = datetime.fromisoformat(item["expires_at"])
-            if datetime.now(UTC) > expires_at:
+            if datetime.now(timezone.utc) > expires_at:
                 # lock is expired
                 await table.delete_item(Key={self.partition_key: lock_key})
                 return False
@@ -125,7 +125,7 @@ class DynamoDBlockTable(BaseBackend):
             table = await dynamodb.Table(self.table_name)
 
             new_expiration_time = (
-                datetime.now(UTC) + timedelta(seconds=ttl_seconds)
+                datetime.now(timezone.utc) + timedelta(seconds=ttl_seconds)
             ).isoformat()
 
             try:

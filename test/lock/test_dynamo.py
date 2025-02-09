@@ -1,5 +1,4 @@
-from datetime import datetime, UTC, timedelta
-from unittest.mock import AsyncMock, Mock
+from datetime import datetime, timedelta, timezone
 from botocore.exceptions import ClientError
 import pytest
 
@@ -48,7 +47,7 @@ class MockTable:
             "Item": {
                 "lock_key": "test_key",
                 "lock_id": "test_id",
-                "expires_at": (datetime.now(UTC) + timedelta(hours=1)).isoformat()
+                "expires_at": (datetime.now(timezone.utc) + timedelta(hours=1)).isoformat()
             }
         })
 
@@ -70,7 +69,7 @@ class MockTable:
 @pytest.mark.asyncio
 async def test_dynamo_lock(monkeypatch):
     lock = DynamoDBlockTable("test_lock", "lock_key")
-    monkeypatch.setattr(lock, "session", MockSession(get_item={"Item": {"expires_at": (datetime.now(UTC) + timedelta(hours=1)).isoformat()}}))
+    monkeypatch.setattr(lock, "session", MockSession(get_item={"Item": {"expires_at": (datetime.now(timezone.utc) + timedelta(hours=1)).isoformat()}}))
     lock_object = await lock.acquire("test_key", 300)
     assert lock_object is not None
     assert lock_object.lock_id is not None
