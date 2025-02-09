@@ -97,4 +97,4 @@ async def test_dynamo_refresh(monkeypatch):
     lock = DynamoDBlockTable("test_lock", "lock_key")
     monkeypatch.setattr(lock, "session", MockSession())
     lock_object = await lock.acquire("test_key", 300)
-    lock.refresh("test_key", lock_object.lock_id, 300)
+    await lock.refresh("test_key", lock_object.lock_id, 300)
