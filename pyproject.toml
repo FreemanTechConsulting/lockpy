@@ -14,7 +14,7 @@ authors = [
 ]
 license = { text = "MIT" }
 readme = "README.md"
-requires-python = ">=3.12,<3.13"
+requires-python = ">=3.9,<3.14"
 dependencies = [
     "aioboto3~=13.4.0"
 ]
