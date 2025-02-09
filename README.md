@@ -14,7 +14,7 @@ Here are some features of `lockpy`:
  - can be used as an asyncio context manager
 
 ## Python Versions supported
-Currently only tested again Python 3.12 more versions to come soon. 
+Currently supported for python 3.9 to 3.13
 
 ## Installation
 
