@@ -48,7 +48,9 @@ class DynamoDBlockTable(BaseBackend):
                         "expires_at": expiration_time,
                     },
                     ConditionExpression=f"attribute_not_exists({self.partition_key}) OR expires_at < :now",
-                    ExpressionAttributeValues={":now": datetime.now(timezone.utc).isoformat()},
+                    ExpressionAttributeValues={
+                        ":now": datetime.now(timezone.utc).isoformat()
+                    },
                 )
                 return AcquiredLock(lock_key, lock_id, expiration_time)
             except ClientError as client_error:
