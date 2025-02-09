@@ -5,7 +5,7 @@ import logging
 from botocore.exceptions import ClientError
 
 from lockpy.backend.base_backend import BaseBackend
-from lockpy.models.exceptions import DuplicateLockError
+from lockpy.models.exceptions import DuplicateLockError, RefreshLockError
 from lockpy.models.lock import AcquiredLock
 
 logger = logging.getLogger(__name__)
@@ -139,7 +139,14 @@ class DynamoDBlockTable(BaseBackend):
                     },
                 )
                 return AcquiredLock(lock_key, lock_id, new_expiration_time)
+            except ClientError as client_error:
+                if (
+                    client_error.response["Error"]["Code"]
+                    == "ConditionalCheckFailedException"
+                ):
+                    logger.error(f"Failed to refresh lock for {lock_key}")
+                    raise RefreshLockError(f"Failed to refresh lock for {lock_key}")
             except Exception as e:
                 logger.error(f"Failed to refresh lock for {lock_key}")
                 logger.debug(e)
-                raise e
+                raise RefreshLockError(f"Failed to refresh lock for {lock_key}")
